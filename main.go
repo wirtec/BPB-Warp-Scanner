@@ -42,13 +42,13 @@ type ScanConfig struct {
 }
 
 var (
-	VERSION  = "dev"
-	prompt   = fmtStr("●", GREEN, true)
-	errMark  = fmtStr("✗", RED, true)
+	VERSION = "dev"
+	prompt  = fmtStr("●", GREEN, true)
+	errMark = fmtStr("✗", RED, true)
 	succMark = fmtStr("✓", GREEN, true)
-	// ask      = fmtStr("-", "", true)
-	// info     = fmtStr("+", "", true)
-	// warning  = fmtStr("Warning", RED, true)
+	// ask = fmtStr("-", "", true)
+	// info = fmtStr("+", "", true)
+	// warning = fmtStr("Warning", RED, true)
 	xrayPath string
 )
 
@@ -77,21 +77,20 @@ type ScanResult struct {
 
 func fmtStr(str string, color string, isBold bool) string {
 	style := lipgloss.NewStyle().Bold(isBold)
-
 	if color != "" {
 		style = style.Foreground(lipgloss.Color(color))
 	}
-
 	return style.Render(str)
 }
 
 func renderHeader() {
 	fmt.Printf(`
-■■■■■■■  ■■■■■■■  ■■■■■■■ 
-■■   ■■  ■■   ■■  ■■   ■■
-■■■■■■■  ■■■■■■■  ■■■■■■■ 
-■■   ■■  ■■       ■■   ■■
-■■■■■■■  ■■       ■■■■■■■  %s %s
+  ■■■■■■■  ■■■■■■■  ■■■■■■■
+  ■■    ■■ ■■    ■■ ■■    ■■
+  ■■■■■■■  ■■■■■■■  ■■■■■■■
+  ■■    ■■ ■■       ■■    ■■
+  ■■■■■■■  ■■       ■■■■■■■  %s %s
+	
 `,
 		fmtStr("Warp Scanner", BLUE, true),
 		fmtStr(VERSION, GREEN, false),
@@ -113,6 +112,7 @@ func generateEndpoints() {
 		"8.39.214.", "8.39.204.", "8.6.112.", "8.35.211.", "8.39.125.",
 		"8.47.69.",
 	}
+
 	ipv6Prefixes := []string{
 		"2606:4700:d0::", "2606:4700:d1::",
 	}
@@ -120,8 +120,8 @@ func generateEndpoints() {
 	rand.New(rand.NewSource(time.Now().UnixNano()))
 	endpoints := make([]string, 0, scanConfig.EndpointCount)
 	seen := make(map[string]bool)
-
 	ipv4Count, ipv6Count := 0, 0
+
 	if scanConfig.Ipv4Mode && scanConfig.Ipv6Mode {
 		ipv4Count = scanConfig.EndpointCount / 2
 		ipv6Count = scanConfig.EndpointCount - ipv4Count
@@ -135,6 +135,7 @@ func generateEndpoints() {
 		prefix := ipv4Prefixes[rand.Intn(len(ipv4Prefixes))]
 		ip := fmt.Sprintf("%s%d", prefix, rand.Intn(256))
 		endpoint := fmt.Sprintf("%s:%d", ip, ports[rand.Intn(len(ports))])
+
 		if !seen[endpoint] {
 			seen[endpoint] = true
 			endpoints = append(endpoints, endpoint)
@@ -147,6 +148,7 @@ func generateEndpoints() {
 			rand.Intn(65536), rand.Intn(65536),
 			rand.Intn(65536), rand.Intn(65536))
 		endpoint := fmt.Sprintf("%s:%d", ip, ports[rand.Intn(len(ports))])
+
 		if !seen[endpoint] {
 			seen[endpoint] = true
 			endpoints = append(endpoints, endpoint)
@@ -165,7 +167,7 @@ func writeLines(path string, lines []string) error {
 }
 
 func renderEndpoints(results []ScanResult) {
-	message := fmt.Sprintf("Top %d Endpoints:\n", len(results))
+	message := fmt.Sprintf("All %d working endpoints:\n", len(results))
 	successMessage(message)
 
 	var tableRows [][]string
@@ -196,6 +198,7 @@ func renderEndpoints(results []ScanResult) {
 		}).
 		Headers("Endpoint", "Loss rate", "Latency").
 		Rows(tableRows...)
+
 	fmt.Println(table.Render())
 }
 
@@ -224,6 +227,7 @@ func init() {
 
 	accessLog := filepath.Join(logDir, "access.log")
 	errorLog := filepath.Join(logDir, "error.log")
+
 	for _, file := range []string{accessLog, errorLog} {
 		file, err := os.Create(file)
 		if err != nil {
@@ -239,8 +243,8 @@ func init() {
 	} else {
 		binary = "xray"
 	}
-	xrayPath = filepath.Join(CORE_DIR, binary)
 
+	xrayPath = filepath.Join(CORE_DIR, binary)
 	if _, err := os.Stat(xrayPath); err != nil {
 		failMessage("Xray core not found.")
 		log.Fatal(err)
@@ -281,7 +285,6 @@ func isValidHex(value string) bool {
 	if err != nil {
 		return false
 	}
-
 	return len(value) > 0 && matched
 }
 
@@ -289,7 +292,6 @@ func isValidBase64(value string) bool {
 	if len(value) == 0 {
 		return false
 	}
-
 	_, err := base64.StdEncoding.DecodeString(value)
 	return err == nil
 }
@@ -320,10 +322,12 @@ func main() {
 	fmt.Printf("\n%s Normal scan - 1000 endpoints", fmtStr("2.", BLUE, true))
 	fmt.Printf("\n%s Deep scan - 10000 endpoints", fmtStr("3.", BLUE, true))
 	fmt.Printf("\n%s Custom scan - you choose how many endpoints", fmtStr("4.", BLUE, true))
+
 	for {
 		fmt.Printf("\n\n%s Please select scan mode (1-4): ", prompt)
 		var mode string
 		fmt.Scanln(&mode)
+
 		switch mode {
 		case "1":
 		case "2":
@@ -335,6 +339,7 @@ func main() {
 				var howMany string
 				fmt.Printf("\n\n%s Please enter your desired endpoints count: ", prompt)
 				fmt.Scanln(&howMany)
+
 				isValid, c := checkNum(howMany, 1, 10000)
 				if !isValid {
 					failMessage("Invalid input. Please enter a numeric value between 1-10000.")
@@ -347,15 +352,19 @@ func main() {
 			failMessage("Invalid choice. Please select 1 to 4.")
 			continue
 		}
+
 		break
 	}
+
 	fmt.Printf("\n%s Scan IPv4 only", fmtStr("1.", BLUE, true))
 	fmt.Printf("\n%s Scan IPv6 only", fmtStr("2.", BLUE, true))
 	fmt.Printf("\n%s IPv4 and IPv6", fmtStr("3.", BLUE, true))
+
 	for {
 		var ipVersion string
 		fmt.Printf("\n\n%s Please select IP version (1-3): ", prompt)
 		fmt.Scanln(&ipVersion)
+
 		switch ipVersion {
 		case "1":
 		case "2":
@@ -367,15 +376,18 @@ func main() {
 			failMessage("Invalid choice. Please select 1 to 3.")
 			continue
 		}
+
 		break
 	}
 
 	fmt.Printf("\n%s Warp is totally blocked on my ISP", fmtStr("1.", BLUE, true))
 	fmt.Printf("\n%s Warp is OK, just need faster endpoints", fmtStr("2.", BLUE, true))
+
 	for {
 		var res string
 		fmt.Printf("\n\n%s Please select your situation (1 or 2): ", prompt)
 		fmt.Scanln(&res)
+
 		switch res {
 		case "1":
 		case "2":
@@ -384,15 +396,18 @@ func main() {
 			failMessage("Invalid choice. Please select 1 or 2.")
 			continue
 		}
+
 		break
 	}
 
 	fmt.Printf("\n%s Use default noise", fmtStr("1.", BLUE, true))
 	fmt.Printf("\n%s Setup custom noise", fmtStr("2.", BLUE, true))
+
 	for {
 		var res string
 		fmt.Printf("\n\n%s Please select (1 or 2): ", prompt)
 		fmt.Scanln(&res)
+
 		switch res {
 		case "1":
 		case "2":
@@ -400,11 +415,14 @@ func main() {
 			fmt.Printf("\n%s Hex", fmtStr("2.", BLUE, true))
 			fmt.Printf("\n%s String", fmtStr("3.", BLUE, true))
 			fmt.Printf("\n%s Random", fmtStr("4.", BLUE, true))
+
 			var noiseType, packet, delay, count string
+
 			for {
 				var res string
 				fmt.Printf("\n\n%s Please select UDP noise type (1-4): ", prompt)
 				fmt.Scanln(&res)
+
 				switch res {
 				case "1":
 					noiseType = "base64"
@@ -418,12 +436,14 @@ func main() {
 					failMessage("Invalid choice. Please select 1-4.")
 					continue
 				}
+
 				break
 			}
 
 			for {
 				fmt.Printf("\n%s Please enter a %s packet: ", prompt, fmtStr(noiseType, GREEN, true))
 				fmt.Scanln(&packet)
+
 				switch noiseType {
 				case "base64":
 					if !isValidBase64(packet) {
@@ -444,27 +464,32 @@ func main() {
 						continue
 					}
 				}
+
 				break
 			}
 
 			for {
 				fmt.Printf("\n%s Please enter noise delay in miliseconds, it can be a fixed number or an interval like %s: ", prompt, fmtStr("1-5", GREEN, true))
 				fmt.Scanln(&delay)
+
 				if !isValidRange(delay) {
 					failMessage("Invalid delay value, please try again.")
 					continue
 				}
+
 				break
 			}
 
 			for {
 				fmt.Printf("\n%s Please enter number of noise packets (up to 50): ", prompt)
 				fmt.Scanln(&count)
+
 				isValid, noiseCount := checkNum(count, 1, 50)
 				if !isValid {
 					failMessage("Invalid value. Please enter a numeric value between 1 and 50.")
 					continue
 				}
+
 				scanConfig.UdpNoise = Noise{
 					Type:   noiseType,
 					Packet: packet,
@@ -473,37 +498,26 @@ func main() {
 				}
 				break
 			}
-
 		default:
 			failMessage("Invalid choice. Please select 1 or 2.")
 			continue
 		}
+
 		break
 	}
 
-	for {
-		var res string
-		fmt.Printf("\n%s How many Endpoints do you need: ", prompt)
-		fmt.Scanln(&res)
-		isValid, num := checkNum(res, 1, scanConfig.EndpointCount)
-		if isValid {
-			scanConfig.OutputCount = num
-			break
-		} else {
-			errorMessage := fmt.Sprintf("Invalid input. Please enter a numeric value between 1-%d.", scanConfig.EndpointCount)
-			failMessage(errorMessage)
-		}
-	}
+	// Always show every successful endpoint (no output-count prompt).
+	scanConfig.OutputCount = scanConfig.EndpointCount
 
 	if scanConfig.Ipv4Mode {
 		checkNetworkStats(false)
 	}
+
 	if scanConfig.Ipv6Mode {
 		checkNetworkStats(true)
 	}
 
 	generateEndpoints()
-
 	results, err := scanEndpoints()
 	if err != nil {
 		failMessage("Scan failed.")
@@ -519,14 +533,17 @@ func main() {
 	for _, r := range results {
 		lines = append(lines, fmt.Sprintf("%s,%.2f %%,%d ms", r.Endpoint, r.Loss, r.Latency))
 	}
+
 	if err := writeLines("result.csv", lines); err != nil {
 		fmt.Printf("Error saving working IPs: %v\n", err)
 	}
 
-	renderEndpoints(results[:min(scanConfig.OutputCount, len(results))])
+	renderEndpoints(results)
+
 	successMessage("Scan completed.")
 	message := fmt.Sprintf("Found %d endpoints. You can check result.csv for more details.\n", len(results))
 	successMessage(message)
+
 	fmt.Printf("%s Press any key to exit...", prompt)
 	fmt.Scanln()
 }
