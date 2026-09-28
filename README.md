@@ -42,5 +42,5 @@ Based on your operating system architecture, [download the ZIP file](https://git
 Android users who have Termux installed on their device and Linux users can use this bash:
 
 ```bash
-bash <(curl -fsSL https://raw.githubusercontent.com/bia-pain-bache/BPB-Warp-Scanner/main/install.sh)
+bash <(curl -fsSL https://raw.githubusercontent.com/wirtec/BPB-Warp-Scanner/main/install.sh)
 ```
